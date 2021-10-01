@@ -1,17 +1,15 @@
-import React, { createContext, useState } from "react";
-
-const dimensions = ["width", "height", "depth"] as const;
-const defaultSize = 0.1;
-export const sizeIncrement = 0.05;
+import React, { createContext, useContext, useState } from "react";
 
 export type StateFn = (value: number) => void;
-type GetDimensions = Record<typeof dimensions[number], number>;
+type GetDimensions = Record<"width" | "height" | "depth", number>;
 type SetDimensions = {
   [Property in keyof GetDimensions as `set${Capitalize<Property>}`]: StateFn;
 };
 type ARContextState = GetDimensions & SetDimensions;
 
-export const ARContext = createContext({} as ARContextState);
+const ARContext = createContext<ARContextState | undefined>(undefined);
+const defaultSize = 0.1;
+export const sizeIncrement = 0.05;
 
 interface ARContextComponentProps {
   children: React.ReactNode;
@@ -19,23 +17,38 @@ interface ARContextComponentProps {
 
 const boundsFn = (setState: StateFn): StateFn => {
   return (value: number) =>
-    setState(Math.round(Math.max(0.1, value) * 100) / 100);
+    setState(Math.round(Math.max(defaultSize, value) * 100) / 100);
 };
 
-export const ARContextComponent = ({
-  children,
-}: ARContextComponentProps): React.ReactElement => {
-  const value = {} as ARContextState;
+export const useARContext = (): ARContextState => {
+  const context = useContext(ARContext);
 
-  for (const getStateName of dimensions) {
-    const setStateName = `set${
-      getStateName.charAt(0).toUpperCase() + getStateName.slice(1)
-    }` as keyof SetDimensions;
-    const [state, setState] = useState(defaultSize);
-
-    value[getStateName] = state;
-    value[setStateName] = boundsFn(setState);
+  if (context === undefined) {
+    throw new Error("useARContext must be within ARContextComponent");
   }
 
-  return <ARContext.Provider value={value}>{children}</ARContext.Provider>;
+  return context;
+};
+
+export const ARContextProvider = ({
+  children,
+}: ARContextComponentProps): React.ReactElement => {
+  const [width, setWidth] = useState(defaultSize);
+  const [height, setHeight] = useState(defaultSize);
+  const [depth, setDepth] = useState(defaultSize);
+
+  return (
+    <ARContext.Provider
+      value={{
+        width,
+        setWidth: boundsFn(setWidth),
+        height,
+        setHeight: boundsFn(setHeight),
+        depth,
+        setDepth: boundsFn(setDepth),
+      }}
+    >
+      {children}
+    </ARContext.Provider>
+  );
 };

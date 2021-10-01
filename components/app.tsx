@@ -1,12 +1,11 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { ViroARSceneNavigator } from "@viro-community/react-viro";
 import { Button, Image, View } from "react-native";
 import { styles } from "./styles";
-import { ARContext } from "./arContext";
 import { SceneBox } from "./sceneBox";
 import { Control } from "./control";
 import { ViroMaterials } from "@viro-community/react-viro";
-import { ARContextComponent } from "./arContext";
+import { ARContextProvider, useARContext } from "./arContext";
 
 ViroMaterials.createMaterials({
   box: {
@@ -20,7 +19,7 @@ ViroMaterials.createMaterials({
 const ARApp = (): React.ReactElement => {
   const [isAr, setAr] = useState(false);
   const { width, setWidth, height, setHeight, depth, setDepth } =
-    useContext(ARContext);
+    useARContext();
 
   return (
     <>
@@ -29,7 +28,6 @@ const ARApp = (): React.ReactElement => {
         initialScene={{
           scene: SceneBox,
         }}
-        style={styles.f1}
       />
       {isAr && (
         <View style={styles.controls}>
@@ -54,8 +52,8 @@ const ARApp = (): React.ReactElement => {
 
 export const App = (): React.ReactElement => {
   return (
-    <ARContextComponent>
+    <ARContextProvider>
       <ARApp />
-    </ARContextComponent>
+    </ARContextProvider>
   );
 };

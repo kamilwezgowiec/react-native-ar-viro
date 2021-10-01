@@ -1,9 +1,9 @@
-import React, { useContext } from "react";
+import React from "react";
 import { ViroARScene, ViroBox } from "@viro-community/react-viro";
-import { ARContext } from "./arContext";
+import { useARContext } from "./arContext";
 
 export const SceneBox = (): React.ReactElement => {
-  const { width, height, depth } = useContext(ARContext);
+  const { width, height, depth } = useARContext();
 
   return (
     <ViroARScene>
