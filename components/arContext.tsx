@@ -5,25 +5,36 @@ type GetDimensions = Record<"width" | "height" | "depth", number>;
 type SetDimensions = {
   [Property in keyof GetDimensions as `set${Capitalize<Property>}`]: StateFn;
 };
-type ARContextState = GetDimensions & SetDimensions;
+
+interface ARContextState extends GetDimensions, SetDimensions {
+  spawned: boolean;
+  setSpawned: (spawned: boolean) => void;
+}
 
 const ARContext = createContext<ARContextState | undefined>(undefined);
-const defaultSize = 0.1;
+const defaultSize = 0.3;
+const minimumSize = 0.1;
+const maximumSize = 1.5;
 export const sizeIncrement = 0.05;
 
 interface ARContextComponentProps {
   children: React.ReactNode;
 }
 
-const boundsFn = (setState: StateFn): StateFn => {
-  return (value: number) =>
-    setState(Math.round(Math.max(defaultSize, value) * 100) / 100);
+const useDimensionState = (): [number, (size: number) => void] => {
+  const [size, setSize] = useState(defaultSize);
+
+  return [
+    size,
+    (value: number) =>
+      setSize(+Math.max(minimumSize, Math.min(maximumSize, value)).toFixed(2)),
+  ];
 };
 
 export const useARContext = (): ARContextState => {
   const context = useContext(ARContext);
 
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useARContext must be within ARContextComponent");
   }
 
@@ -33,19 +44,22 @@ export const useARContext = (): ARContextState => {
 export const ARContextProvider = ({
   children,
 }: ARContextComponentProps): React.ReactElement => {
-  const [width, setWidth] = useState(defaultSize);
-  const [height, setHeight] = useState(defaultSize);
-  const [depth, setDepth] = useState(defaultSize);
+  const [width, setWidth] = useDimensionState();
+  const [height, setHeight] = useDimensionState();
+  const [depth, setDepth] = useDimensionState();
+  const [spawned, setSpawned] = useState(false);
 
   return (
     <ARContext.Provider
       value={{
         width,
-        setWidth: boundsFn(setWidth),
+        setWidth,
         height,
-        setHeight: boundsFn(setHeight),
+        setHeight,
         depth,
-        setDepth: boundsFn(setDepth),
+        setDepth,
+        spawned,
+        setSpawned,
       }}
     >
       {children}

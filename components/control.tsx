@@ -16,20 +16,16 @@ export const Control = ({
 }: ControlProps): React.ReactElement => {
   return (
     <View style={styles.controlsRow}>
-      <Text style={{ color: "white", marginTop: 10 }}>
-        {label} {size}
+      <Text style={{ marginTop: 10 }}>
+        {label} {size}m
       </Text>
       <Button
-        onPress={() => {
-          setSize(size + sizeIncrement);
-        }}
+        onPress={() => setSize(size + sizeIncrement)}
         title="+"
         color="#8645EA"
       />
       <Button
-        onPress={() => {
-          setSize(size - sizeIncrement);
-        }}
+        onPress={() => setSize(size - sizeIncrement)}
         title="-"
         color="#8645EA"
       />
